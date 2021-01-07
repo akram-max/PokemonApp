@@ -25,9 +25,8 @@ public class PokemonRecyclerViewActivity extends AppCompatActivity {
     /* List of pokemons and recycler view*/
     public List<Pokemon> pokemons_response = new ArrayList<Pokemon>();
     private RecyclerView recyclerView;
-
-    RecyclerViewAdapter recyclerViewAdapter;
-    ApiInterface apiService;
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private ApiInterface apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,27 +38,29 @@ public class PokemonRecyclerViewActivity extends AppCompatActivity {
         /* RecyclerView */
         recyclerView = findViewById(R.id.rvContacts);
         recyclerViewAdapter = new RecyclerViewAdapter(pokemons_response, this);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL, false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(recyclerViewAdapter);
-        /* API CALL */
 
+        /* 1st API CALL */
         Call<PokemonResumeResponse> call = apiService.getPokemons();
-        call.enqueue(new Callback<PokemonResumeResponse>(){
-
+        call.enqueue(new Callback<PokemonResumeResponse>() {
             @Override
             public void onResponse(Call<PokemonResumeResponse> call, retrofit2.Response<PokemonResumeResponse> response) {
 
                 PokemonResumeResponse pokemonResumeResponse = response.body();
+
+                assert pokemonResumeResponse != null;
                 List<PokemonResume> list_pokemons = pokemonResumeResponse.getResults();
                 for (PokemonResume pokemonResume : list_pokemons) {
-                    if(response.body() != null){
+                    if (response.body() != null) {
                         String url = pokemonResume.getUrl();
                         String id = url.substring(url.length() - 2);
 
                         //##############################################################
 
+                        /* 2nd API CALL */
                         Call<Pokemon> call_pokemons_details = apiService.getPokemonsDetails(id);
                         call_pokemons_details.enqueue(new Callback<Pokemon>() {
 
@@ -70,16 +71,16 @@ public class PokemonRecyclerViewActivity extends AppCompatActivity {
                                 pokemons_response.add(pokemonResponse);
                                 recyclerViewAdapter.notifyDataSetChanged();
                             }
+
                             @Override
                             public void onFailure(Call<Pokemon> call, Throwable t) {
                                 Log.e("Erreur_R", t.toString());
                             }
                         });
-
                         //##############################################################
 
                         Log.e("successs", "success");
-                    }else{
+                    } else {
                         Log.e("erreur_contacts", "erreur");
                     }
                 }
