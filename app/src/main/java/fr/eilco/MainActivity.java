@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerViewPok.setLayoutManager(new GridLayoutManager(this, 3));
 
-        setTitle("Pokemon project");
+        setTitle("EILCO Pokemon Project");
 
         getGenerations();
         getPokemons();
@@ -140,6 +140,9 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(@NotNull Call<Generation> call, @NotNull Response<Generation> response) {
                 List<PokemonResult> pokemonResults = response.body().getPokemon_species();
                 pokemonRVAdapter.addPokemon(pokemonResults);
+
+                setTitle("Generation " + id);
+
                 Log.d("NewGen : ", pokemonResults.toString());
             }
 
