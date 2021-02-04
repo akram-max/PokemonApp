@@ -1,11 +1,13 @@
 package fr.eilco;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,9 +18,10 @@ import java.util.List;
 
 import fr.eilco.adapter.GenerationRVAdapter;
 import fr.eilco.adapter.PokemonRVAdapter;
+import fr.eilco.dao.database.PokemonResultDAO;
 import fr.eilco.dao.web.GenerationRepository;
 import fr.eilco.dao.web.PokemonRepository;
-import fr.eilco.listener.ClickListener;
+import fr.eilco.db.DbConfig;
 import fr.eilco.model.BaseGeneration;
 import fr.eilco.model.BasePokemon;
 import fr.eilco.model.Generation;
@@ -98,20 +101,30 @@ public class MainActivity extends AppCompatActivity {
         PokemonRepository pokemonRepository = ApiClient.getRetrofitInstance().create(PokemonRepository.class);
         Call<BasePokemon> basePokemonCall = pokemonRepository.findAll();
         basePokemonCall.enqueue(new Callback<BasePokemon>() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             @EverythingIsNonNull
             public void onResponse(Call<BasePokemon> call, Response<BasePokemon> response) {
                 BasePokemon basePokemon = response.body();
                 assert basePokemon != null;
                 pokemonResultList = basePokemon.getResults();
-                pokemonRVAdapter.addPokemon(pokemonResultList);
-                Log.d("Pokemon list : ", pokemonResultList.toString());
+
+                // ROOM database
+                PokemonResultDAO pokemonResultDAO = DbConfig.getRoomInstance(getApplicationContext()).pokemonResultDAO();
+                if (pokemonResultDAO.getAll().isEmpty()) {
+                    pokemonResultList.forEach(pokemonResultDAO::insertAll);
+                    pokemonRVAdapter.addPokemon(pokemonResultList);
+                } else {
+                    pokemonRVAdapter.addPokemon(pokemonResultDAO.getAll());
+                    Log.d("ROOM : ", pokemonResultDAO.getAll().toString());
+                }
+
             }
 
             @Override
             @EverythingIsNonNull
             public void onFailure(Call<BasePokemon> call, Throwable t) {
-                Log.d("Error", t.toString());
+                Log.d("ROOM ERROR : ", t.toString());
             }
         });
     }

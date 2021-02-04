@@ -11,6 +11,6 @@ public class DbConfig {
     private DbConfig() { }
 
     public static AppDatabase getRoomInstance(Context context) {
-        return Room.databaseBuilder(context, AppDatabase.class, DB_NAME).build();
+        return Room.databaseBuilder(context, AppDatabase.class, DB_NAME).allowMainThreadQueries().build();
     }
 }
